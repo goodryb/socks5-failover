@@ -1,0 +1,5 @@
+# 固定脚本类文件的换行符：cmd/wscript 需要 CRLF，bash 需要 LF
+# (仅限可执行脚本；其余文件维持仓库默认换行策略，避免全量重新规范化)
+*.bat text eol=crlf
+*.vbs text eol=crlf
+*.sh  text eol=lf
