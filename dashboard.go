@@ -288,14 +288,14 @@ function drawChart(canvas, history) {
     ctx.fillStyle = '#9aa5b1'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('数据积累中...', rw / 2, rh / 2); return;
   }
-  var maxVal = Math.max.apply(null, history.map(function(r){ return r.val; }).concat([1]));
+  var maxVal = 5000;
   var padding = { top: 8, bottom: 16, left: 4, right: 4 };
   var chartW = rw - padding.left - padding.right, chartH = rh - padding.top - padding.bottom;
   var step = chartW / (history.length - 1);
   ctx.beginPath();
   ctx.moveTo(padding.left, padding.top + chartH);
   history.forEach(function(r, i) {
-    ctx.lineTo(padding.left + i * step, padding.top + chartH - (r.val / maxVal) * chartH);
+    ctx.lineTo(padding.left + i * step, padding.top + chartH - Math.min(r.val / maxVal, 1) * chartH);
   });
   ctx.lineTo(padding.left + (history.length - 1) * step, padding.top + chartH);
   ctx.closePath();
@@ -304,14 +304,14 @@ function drawChart(canvas, history) {
   ctx.fillStyle = grad; ctx.fill();
   ctx.beginPath();
   history.forEach(function(r, i) {
-    var x = padding.left + i * step, y = padding.top + chartH - (r.val / maxVal) * chartH;
+    var x = padding.left + i * step, y = padding.top + chartH - Math.min(r.val / maxVal, 1) * chartH;
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.strokeStyle = '#4c5fd6'; ctx.lineWidth = 2; ctx.stroke();
   history.forEach(function(r, i) {
     if (!r.ok) {
       ctx.beginPath();
-      ctx.arc(padding.left + i * step, padding.top + chartH - (r.val / maxVal) * chartH, 3, 0, Math.PI * 2);
+      ctx.arc(padding.left + i * step, padding.top + chartH - Math.min(r.val / maxVal, 1) * chartH, 3, 0, Math.PI * 2);
       ctx.fillStyle = '#dc2626'; ctx.fill();
     }
   });
