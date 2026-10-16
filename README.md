@@ -39,6 +39,7 @@ socks5-failover/
 ├── stop.vbs          # Windows 静默后台停止脚本
 ├── dist/             # 本地构建产物输出目录（已 gitignore，不入库）
 ├── socks5-failover.db  # 运行时数据库（位于进程工作目录，首次启动自动创建，勿提交）
+├── image/            # README 界面截图
 ├── .gitignore        # 忽略规则
 ├── .gitattributes    # 脚本类文件的换行符约定
 └── README.md         # 项目说明文档
@@ -66,12 +67,14 @@ socks5-failover/
 | macOS Apple Silicon | `socks5-failover-darwin-arm64` |
 | Windows | `socks5-failover-windows-amd64.exe` |
 
-全部产物由 GitHub Actions 以 `CGO_ENABLED=0` 静态编译，无运行库依赖；每个产物附 `.sha256` 校验文件。下载后赋予执行权限即可运行：
+全部产物由 GitHub Actions 以 `CGO_ENABLED=0` 静态编译，无运行库依赖；每个产物附 `.sha256` 校验文件。下载后即可直接运行：
 
-```bash
-chmod +x socks5-failover-linux-amd64
-./socks5-failover-linux-amd64
-```
+- **Linux / macOS**：赋予执行权限后启动
+  ```bash
+  chmod +x socks5-failover-linux-amd64
+  ./socks5-failover-linux-amd64
+  ```
+- **Windows**：直接双击 `socks5-failover-windows-amd64.exe`，弹出的控制台窗口会实时输出日志。数据库会建在 exe 所在目录，建议先把 exe 放入独立目录（如 `C:\socks5-failover\`）再运行；首次运行如遇 SmartScreen 拦截（产物未做代码签名），点「更多信息」→「仍要运行」即可。
 
 **方式 B：本地构建**
 
@@ -91,24 +94,21 @@ chmod +x socks5-failover-linux-amd64
 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o dist/socks5-failover .
 ```
 
-### 2. 运行
+构建完成后在项目根目录运行产物：
 
 - **前台控制台运行**（便于查看实时输出日志，在项目根目录执行以保持数据库位置一致）：
   ```bash
   ./dist/socks5-failover        # Linux / macOS
   ```
   ```bat
-  dist\socks5-failover.exe      # Windows（本地自编译）
+  dist\socks5-failover.exe      # Windows
   ```
-  从 Release 下载的产物可在任意目录运行，只需注意它会使用当前所在目录下的数据库。
 
-- **Windows 后台静默启动**：
-  先执行 `build.bat` 生成 `dist\socks5-failover.exe`，再双击 `start.vbs`。脚本会把工作目录锁到项目根目录后静默拉起该产物，无命令行窗口。
+- **Windows 后台静默启动**：双击 `start.vbs`，脚本会把工作目录锁到项目根目录后静默拉起 `dist\socks5-failover.exe`，无命令行窗口。
 
-- **Windows 后台静默停止**：
-  双击 `stop.vbs`（按映像名 `taskkill`，同样不弹窗）。由于流量增量每 30 秒已落库并回收 WAL，强制结束最多丢失 30 秒统计，不会损坏数据库。可用任务管理器或 `127.0.0.1:9090` 是否还能访问确认已停。
+- **Windows 后台静默停止**：双击 `stop.vbs`（按映像名 `taskkill`，同样不弹窗）。由于流量增量每 30 秒已落库并回收 WAL，强制结束最多丢失 30 秒统计，不会损坏数据库。可用任务管理器或 `127.0.0.1:9090` 是否还能访问确认已停。
 
-### 3. 配置客户端
+### 2. 配置客户端
 
 将浏览器、Telegram、IDE 或系统全局代理的 **SOCKS5 代理** 设置为：
 - **主机**：`127.0.0.1`
@@ -126,6 +126,22 @@ CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o dist/socks5-failover .
 | 节点管理 | 节点增删改、优先级调整、启用/禁用、月度周期起始日设置、清全部历史（自定义二次确认框展示影响范围） |
 | 流量统计 | 按月度周期或按日（7/14/30/90 天）展示各节点上/下行流量 |
 | 设置 | 监听地址、探测参数、测试 URL 在线修改 |
+
+**监控**：
+
+![监控](image/监控.png)
+
+**节点管理**：
+
+![节点管理](image/节点管理.png)
+
+**流量统计**：
+
+![流量统计](image/流量统计.png)
+
+**设置**：
+
+![设置](image/设置.png)
 
 ---
 
@@ -208,3 +224,9 @@ curl -X POST http://127.0.0.1:9090/api/upstreams/1/reset-traffic
    - **平滑过渡（防闪断机制）**：
      - **新建立的连接**：立即路由至恢复的高优主节点。
      - **备用节点上的存量长连接**：继续维持直至其自然结束（如用户主动关闭页面或请求结束），避免回切造成正在进行的下载、长会话被强制打断。
+
+---
+
+## License
+
+本项目基于 [MIT License](LICENSE) 开源。
